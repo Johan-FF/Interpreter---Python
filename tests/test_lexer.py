@@ -30,13 +30,19 @@ class LexerTest(TestCase):
     self.assertEqual(tokens, expected_tokens)
 
   def test_one_character_operation(self) -> None:
-    source: str = '=+'
+    source: str = '=+-/*<>!'
     tokens: List[Token] = self._get_execute_tokens(
       source, len(source)
     )
     expected_tokens: List[Token] = [
       Token(TokenType.ASSIGN, '='),
       Token(TokenType.PLUS, '+'),
+      Token(TokenType.MINUS, '-'),
+      Token(TokenType.DIVISION, '/'),
+      Token(TokenType.MULTIPLICATION, '*'),
+      Token(TokenType.LT, '<'),
+      Token(TokenType.GT, '>'),
+      Token(TokenType.NEGATION, '!'),
     ]
 
     self.assertEqual(tokens, expected_tokens)
@@ -129,6 +135,39 @@ class LexerTest(TestCase):
       Token(TokenType.IDENT, 'tres'),
       Token(TokenType.RPAREN, ')'),
       Token(TokenType.SEMICOLON, ';'),
+    ]
+
+    self.assertEqual(tokens, expected_tokens)
+
+  def test_control_statement(self) -> None:
+    source: str = '''
+      si (5 < 10) {
+        regresa verdadero;
+      } si_no {
+        regresa falso;
+      }
+    '''
+    tokens: List[Token] = self._get_execute_tokens(
+      source, 17
+    )
+    expected_tokens: List[Token] = [
+      Token(TokenType.IF, 'si'),
+      Token(TokenType.LPAREN, '('),
+      Token(TokenType.INT, '5'),
+      Token(TokenType.LT, '<'),
+      Token(TokenType.INT, '10'),
+      Token(TokenType.RPAREN, ')'),
+      Token(TokenType.LBRACE, '{'),
+      Token(TokenType.RETURN, 'regresa'),
+      Token(TokenType.TRUE, 'verdadero'),
+      Token(TokenType.SEMICOLON, ';'),
+      Token(TokenType.RBRACE, '}'),
+      Token(TokenType.ELSE, 'si_no'),
+      Token(TokenType.LBRACE, '{'),
+      Token(TokenType.RETURN, 'regresa'),
+      Token(TokenType.FALSE, 'falso'),
+      Token(TokenType.SEMICOLON, ';'),
+      Token(TokenType.RBRACE, '}'),
     ]
 
     self.assertEqual(tokens, expected_tokens)
