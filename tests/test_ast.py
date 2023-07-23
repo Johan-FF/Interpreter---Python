@@ -2,7 +2,6 @@ from unittest import TestCase
 
 from lpp.ast import (
   Identifier,
-  Expression,
   ReturnStatement,
   LetStatement,
   Program,
