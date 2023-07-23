@@ -1,9 +1,12 @@
 from unittest import TestCase
 
 from lpp.ast import (
+  Expression,
+  ExpressionStatement,
   Identifier,
-  ReturnStatement,
+  Integer,
   LetStatement,
+  ReturnStatement,
   Program,
 )
 from lpp.token import (
@@ -44,3 +47,31 @@ class ASTTest(TestCase):
     program_str = str(program)
 
     self.assertEqual(program_str, 'regresa foo;')
+
+  def test_identifier_expression(self) -> None:
+    program: Program = Program(statements=[
+      ExpressionStatement(
+        token=Token(TokenType.IDENT, literal='foobar'),
+        expression=Identifier(
+          token=Token(TokenType.IDENT, literal='foobar'),
+          value='foobar'
+        )
+      )
+    ])
+    program_str = str(program)
+
+    self.assertEqual(program_str , 'foobar')
+
+  def test_integer_expression(self) -> None:
+    program: Program = Program(statements=[
+      ExpressionStatement(
+        token=Token(TokenType.INT, literal='5'),
+        expression=Integer(
+          token=Token(TokenType.INT, literal='5'),
+          value=5
+        )
+      )
+    ])
+    program_str = str(program)
+
+    self.assertEqual(program_str , '5')
