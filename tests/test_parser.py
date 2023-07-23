@@ -1,4 +1,7 @@
-from typing import (List, cast)
+from typing import (
+  cast,
+  List,
+)
 from unittest import TestCase
 
 from lpp.ast import (
@@ -54,3 +57,11 @@ class ParserTest(TestCase):
       identifiers.append(statement.name.value)
 
     self.assertEqual(identifiers, expected_identifiers)
+
+  def test_parse_errors(self) -> None:
+    source: str = 'variable x 5;'
+    lexer: Lexer = Lexer(source)
+    parser: Parser = Parser(lexer)
+    parser.parse_program()
+
+    self.assertEqual(len(parser.errors), 1)
