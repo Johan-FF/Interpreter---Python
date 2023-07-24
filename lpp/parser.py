@@ -7,6 +7,7 @@ from typing import (
 )
 
 from lpp.ast import (
+  Boolean,
   Expression,
   ExpressionStatement,
   Identifier,
@@ -83,7 +84,10 @@ class Parser:
       TokenType.INT: self._parse_integer,
       TokenType.MINUS: self._parse_prefix_expression,
       TokenType.NEGATION: self._parse_prefix_expression,
+      TokenType.FALSE: self._parse_boolean,
+      TokenType.TRUE: self._parse_boolean,
     }
+
 
   def parse_program(self) -> Program:
     program: Program = Program(statements=[])
@@ -168,6 +172,14 @@ class Parser:
     infix_expression.right = self._parse_expression(precedence)
 
     return infix_expression
+
+  def _parse_boolean(self) -> Boolean:
+    assert self._current_token is not None
+    return Boolean(
+      token=self._current_token,
+      value= self._current_token.token_type == TokenType.TRUE
+    )
+
 
   def _parse_statement(self) -> Optional[Statement]:
     assert self._current_token is not None
