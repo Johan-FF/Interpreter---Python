@@ -10,6 +10,7 @@ from lpp.ast import (
   Expression,
   ExpressionStatement,
   Identifier,
+  Infix,
   Integer,
   LetStatement,
   Prefix,
@@ -37,6 +38,17 @@ class Precedence(IntEnum):
   PREFIX = 6
   CALL = 7
 
+PRECEDENCES: Dict[TokenType, Precedence] = {
+  TokenType.EQ: Precedence.EQUALS,
+  TokenType.NOT_EQ: Precedence.EQUALS,
+  TokenType.LT: Precedence.LESSGREATER,
+  TokenType.GT: Precedence.LESSGREATER,
+  TokenType.PLUS: Precedence.SUM,
+  TokenType.MINUS: Precedence.SUM,
+  TokenType.DIVISION: Precedence.PRODUCT,
+  TokenType.MULTIPLICATION: Precedence.PRODUCT,
+}
+
 class Parser:
   def __init__(self, lexer: Lexer) -> None:
     self._lexer = lexer
@@ -54,7 +66,16 @@ class Parser:
     return self._errors
 
   def _register_infix_fns(self) -> InfixParseFns:
-    return {}
+    return {
+      TokenType.EQ: self._parse_infix_expression,
+      TokenType.NOT_EQ: self._parse_infix_expression,
+      TokenType.LT: self._parse_infix_expression,
+      TokenType.GT: self._parse_infix_expression,
+      TokenType.PLUS: self._parse_infix_expression,
+      TokenType.MINUS: self._parse_infix_expression,
+      TokenType.DIVISION: self._parse_infix_expression,
+      TokenType.MULTIPLICATION: self._parse_infix_expression,
+    }
 
   def _register_prefix_fns(self) -> PrefixParseFns:
     return {
@@ -84,6 +105,19 @@ class Parser:
       return None
 
     left_expression = prefix_parse_fn()
+
+    assert self._peek_token is not None
+    while not self._peek_token.token_type == TokenType.SEMICOLON and \
+      precedence < self._peek_precedence():
+      try:
+        infix_parse_fn = self._infix_parse_fns[self._peek_token.token_type]
+        self._advance_tokens()
+
+        assert left_expression is not None
+        left_expression = infix_parse_fn(left_expression)
+      except KeyError:
+        return left_expression
+
     return left_expression
 
   def _parse_identifier(self) -> Identifier:
@@ -119,6 +153,21 @@ class Parser:
     prefix_expression.right = self._parse_expression(Precedence.PREFIX)
 
     return prefix_expression
+
+  def _parse_infix_expression(self, left: Expression) -> Infix:
+    assert self._current_token is not None
+    infix_expression = Infix(
+      token=self._current_token,
+      operator=self._current_token.literal,
+      left=left
+    )
+
+    precedence = self._current_precedence()
+    self._advance_tokens()
+
+    infix_expression.right = self._parse_expression(precedence)
+
+    return infix_expression
 
   def _parse_statement(self) -> Optional[Statement]:
     assert self._current_token is not None
@@ -169,6 +218,21 @@ class Parser:
       self._advance_tokens()
 
     return return_statement
+
+
+  def _current_precedence(self) -> Precedence:
+    assert self._current_token is not None
+    try:
+      return PRECEDENCES[self._current_token.token_type]
+    except KeyError:
+      return Precedence.LOWEST
+
+  def _peek_precedence(self) -> Precedence:
+    assert self._peek_token is not None
+    try:
+      return PRECEDENCES[self._peek_token.token_type]
+    except KeyError:
+      return Precedence.LOWEST
 
   def _expected_token(self, token_type: TokenType) -> bool:
     assert self._peek_token is not None
