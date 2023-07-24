@@ -121,18 +121,21 @@ class ParserTest(TestCase):
     self._test_literal_expression(expression_statement. expression, 5)
 
   def test_prefix_expression(self) -> None:
-    source: str = '''
-      !foo;
-      -15;
-    '''
+    source: str = '!foo; -15; !verdadero; !falso;'
     lexer: Lexer = Lexer(source)
     parser: Parser = Parser(lexer)
 
     program: Program = parser.parse_program()
 
-    self._test_program_statements(parser, program, expected_statement_count=2)
+    self._test_program_statements(parser, program, expected_statement_count=4)
 
-    for statement, (expected_operator, expected_value) in zip(program.statements, [('!','foo'), ('-', 15)]):
+    expected_values: List[Tuple[str, Any]] = [
+      ('!','foo'),
+      ('-',15),
+      ('!',True),
+      ('!',False),
+    ]
+    for statement, (expected_operator, expected_value) in zip(program.statements, expected_values):
       statement = cast(ExpressionStatement, statement)
       self.assertIsInstance(statement.expression, Prefix)
 
@@ -151,14 +154,17 @@ class ParserTest(TestCase):
       5 > 5;
       5 < 5;
       5 == 5;
-      5 != 5; 
+      5 != 5;
+      verdadero == verdadero;
+      verdadero != falso;
+      falso == falso;
     '''
     lexer: Lexer = Lexer(source)
     parser: Parser = Parser(lexer)
 
     program: Program = parser.parse_program()
 
-    self._test_program_statements(parser, program, expected_statement_count=8)
+    self._test_program_statements(parser, program, expected_statement_count=11)
 
     expected_operators_and_values: List[Tuple[Any, str, Any]] = [
       (5, '+', 5),
@@ -168,7 +174,10 @@ class ParserTest(TestCase):
       (5, '>', 5),
       (5, '<', 5),
       (5, '==', 5),
-      (5, '!=', 5), 
+      (5, '!=', 5),
+      (True, '==', True),
+      (True, '!=', False),
+      (False, '==', False),
     ]
     for statement, (expected_left, expected_operator, expected_right) in zip(program.statements, expected_operators_and_values):
       statement = cast(ExpressionStatement, statement)
@@ -198,6 +207,33 @@ class ParserTest(TestCase):
       expression_statement = cast(ExpressionStatement, statement)
       assert expression_statement.expression is not None
       self._test_literal_expression(expression_statement.expression, expected_value)
+
+  def test_operator_precedence(self) -> None:
+    test_sources: List[Tuple[str, str, int]] = [
+      ('-a * b;', '((-a) * b)', 1),
+      ('!-a;', '(!(-a))', 1),
+      ('3 + 4; -5 * 5;', '(3 + 4)((-5) * 5)', 2),
+      ('a + b + c;', '((a + b) + c)', 1),
+      ('a + b - c;', '((a + b) - c)', 1),
+      ('a * b * c;', '((a * b) * c)', 1),
+      ('a + b / c;', '(a + (b / c))', 1),
+      ('a * b / c;', '((a * b) / c)', 1),
+      ('a + b * c + d / e - f;', '(((a + (b * c)) + (d / e)) - f)', 1),
+      ('5 > 4 == 3 < 4;', '((5 > 4) == (3 < 4))', 1),
+      ('3 - 4 * 5 == 3 * 1 + 4 * 5;', '((3 - (4 * 5)) == ((3 * 1) + (4 * 5)))', 1),
+      ('3 + 4; -5 * 5;', '(3 + 4)((-5) * 5)', 2),
+      ('verdadero;', 'verdadero', 1),
+      ('falso;', 'falso', 1),
+      ('3 > 5 == verdadero;', '((3 > 5) == verdadero)', 1),
+      ('3 < 5 == falso;', '((3 < 5) == falso)', 1),
+    ]
+    for source, expected_result, expected_statement_count in test_sources:
+      lexer: Lexer = Lexer(source)
+      parser: Parser = Parser(lexer)
+      program: Program = parser.parse_program()
+
+      self._test_program_statements(parser, program, expected_statement_count)
+      self.assertEqual(str(program), expected_result)
 
   def _test_program_statements(self,
       parser: Parser,
