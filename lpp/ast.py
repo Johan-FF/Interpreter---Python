@@ -103,6 +103,37 @@ class Infix(Expression):
     return f'({str(self.left)} {self.operator} {str(self.right)})'
 
 
+
+class BlockStatement(Statement):
+  def __init__(self,
+      token: Token,
+      statements: List[Statement]) -> None:
+    super().__init__(token)
+    self.statements = statements
+
+  def __str__(self) -> str:
+    out: List[str] = [str(statement) for statement in self.statements]
+    return '{'+''.join(out)+'}'
+
+
+class If(Expression):
+  def __init__(self,
+      token: Token,
+      condition: Optional[Expression] = None,
+      consequence: Optional[BlockStatement] = None,
+      alternative: Optional[BlockStatement] = None) -> None:
+    super().__init__(token)
+    self.condition = condition
+    self.consequence = consequence
+    self.alternative = alternative
+
+  def __str__(self) -> str:
+    out: str = f'si ( {str(self.condition)} ) {str(self.consequence)} '
+    if self.alternative:
+      out += f'si_no {str(self.alternative)}'
+    return out
+
+
 class LetStatement(Statement):
   def __init__(self,
       token: Token,

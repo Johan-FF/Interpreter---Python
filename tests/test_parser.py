@@ -8,10 +8,12 @@ from typing import (
 from unittest import TestCase
 
 from lpp.ast import (
+  BlockStatement,
   Boolean,
   Expression,
   ExpressionStatement,
   Identifier,
+  If,
   Infix,
   Integer,
   ReturnStatement,
@@ -239,6 +241,74 @@ class ParserTest(TestCase):
       self._test_program_statements(parser, program, expected_statement_count)
       self.assertEqual(str(program), expected_result)
 
+  def test_if_expression(self) -> None:
+    source: str = 'si (x < y) { z }'
+    lexer: Lexer = Lexer(source)
+    parser: Parser = Parser(lexer)
+
+    program: Program = parser.parse_program()
+
+    self._test_program_statements(parser, program)
+
+    # Test correct node type
+    if_expression = cast(
+      If,
+      cast(ExpressionStatement, program.statements[0]).expression
+    )
+    self.assertIsInstance(if_expression, If)
+
+    # Test condition
+    assert if_expression.condition is not None
+    self._test_infix_expression(if_expression.condition, 'x', '<', 'y')
+
+    # Test consequence
+    assert if_expression.consequence is not None
+    self._test_block_statement(
+      block=if_expression.consequence,
+      expected_stements_count=1,
+      expected_value='z'
+    )
+
+    # Test alternative
+    self.assertIsNone(if_expression.alternative)
+
+  def test_if_else_expression(self) -> None:
+    source: str = 'si (x < y) { z } si_no { w }'
+    lexer: Lexer = Lexer(source)
+    parser: Parser = Parser(lexer)
+
+    program: Program = parser.parse_program()
+
+    self._test_program_statements(parser, program)
+
+    # Test correct node type
+    if_expression = cast(
+      If,
+      cast(ExpressionStatement, program.statements[0]).expression
+    )
+    self.assertIsInstance(if_expression, If)
+
+    # Test condition
+    assert if_expression.condition is not None
+    self._test_infix_expression(if_expression.condition, 'x', '<', 'y')
+
+    # Test consequence
+    assert if_expression.consequence is not None
+    self._test_block_statement(
+      block=if_expression.consequence,
+      expected_stements_count=1,
+      expected_value='z'
+    )
+
+    # Test alternative
+    assert if_expression.alternative is not None
+    self._test_block_statement(
+      block=if_expression.alternative,
+      expected_stements_count=1,
+      expected_value='w'
+    )
+
+
   def _test_program_statements(self,
       parser: Parser,
       program: Program,
@@ -249,6 +319,17 @@ class ParserTest(TestCase):
     self.assertEqual(len(parser.errors), 0)
     self.assertEqual(len(program.statements), expected_statement_count)
     self.assertIsInstance(program.statements[0], ExpressionStatement)
+
+  def _test_block_statement(self,
+      block: BlockStatement,
+      expected_stements_count: int,
+      expected_value: Any) -> None:
+    self.assertIsInstance(block, BlockStatement)
+    self.assertEqual(len(block.statements), expected_stements_count)
+
+    alternative_statement = cast(ExpressionStatement, block.statements[0])
+    assert alternative_statement.expression is not None
+    self._test_identifier(alternative_statement.expression, expected_value)
 
   def _test_infix_expression(self,
       expression: Expression,
