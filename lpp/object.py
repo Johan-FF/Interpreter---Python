@@ -11,6 +11,7 @@ class ObjectType(Enum):
   BOOLEAN = auto()
   INTEGER = auto()
   NULL = auto()
+  RETURN = auto()
 
 class Object(ABC):
   @abstractmethod
@@ -41,6 +42,16 @@ class Boolean(Object):
 
   def inspect(self) -> str:
     return 'verdadero' if self.value else 'falso'
+
+class Return(Object):
+  def __init__(self, value: Object) -> None:
+    self.value = value
+
+  def type(self) -> ObjectType:
+    return ObjectType.RETURN
+
+  def inspect(self) -> str:
+    return self.value.inspect()
 
 class Null(Object):
   def type(self) -> ObjectType:
