@@ -23,6 +23,15 @@ class EvaluatorTest(TestCase):
       ('10', 10),
       ('-5', -5),
       ('-10', -10),
+      ('5 + 5', 10),
+      ('5 - 10', -5),
+      ('2 * 2 * 2 * 2', 16),
+      ('2 * 5 - 3', 7),
+      ('50 / 2', 25),
+      ('2 * (5 - 3)', 4),
+      ('(2 + 7) / 3', 3),
+      ('50 / 2 * 2 + 10', 60),
+      ('5 / 2', 2),
     ]
 
     for source, expected in tests:
@@ -33,6 +42,21 @@ class EvaluatorTest(TestCase):
     tests: List[Tuple[str, bool]] = [
       ('verdadero', True),
       ('falso', False),
+      ('1 < 2', True),
+      ('1 > 2', False), 
+      ('1 < 1', False),
+      ('1 > 1', False),
+      ('1 == 1', True),
+      ('1 != 1', False),
+      ('1 != 2', True),
+      ('verdadero == verdadero', True),
+      ('falso == falso', True),
+      ('verdadero == falso', False),
+      ('verdadero != falso', True),
+      ('(1 < 2) == verdadero', True),
+      ('(1 < 2) == falso', False),
+      ('(1 > 2) == verdadero', False),
+      ('(1 > 2) == falso', True),
     ]
 
     for source, expected in tests:
@@ -68,10 +92,10 @@ class EvaluatorTest(TestCase):
     self.assertIsInstance(evaluated, Integer)
 
     evaluated = cast(Integer, evaluated)
-    self.assertEqual(evaluated._value, expected)
+    self.assertEqual(evaluated.value, expected)
 
   def _test_boolean_object(self, evaluated: Object, expected: bool) -> None:
     self.assertIsInstance(evaluated, Boolean)
 
     evaluated = cast(Boolean, evaluated)
-    self.assertEqual(evaluated._value, expected)
+    self.assertEqual(evaluated.value, expected)
