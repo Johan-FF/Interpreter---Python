@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from lpp.ast import (
-  Expression,
   ExpressionStatement,
   Identifier,
   Integer,

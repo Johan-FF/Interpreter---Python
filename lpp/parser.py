@@ -9,6 +9,7 @@ from typing import (
 from lpp.ast import (
   BlockStatement,
   Boolean,
+  Call,
   Expression,
   ExpressionStatement,
   Function,
@@ -51,6 +52,7 @@ PRECEDENCES: Dict[TokenType, Precedence] = {
   TokenType.MINUS: Precedence.SUM,
   TokenType.DIVISION: Precedence.PRODUCT,
   TokenType.MULTIPLICATION: Precedence.PRODUCT,
+  TokenType.LPAREN: Precedence.CALL,
 }
 
 class Parser:
@@ -79,6 +81,7 @@ class Parser:
       TokenType.MINUS: self._parse_infix_expression,
       TokenType.DIVISION: self._parse_infix_expression,
       TokenType.MULTIPLICATION: self._parse_infix_expression,
+      TokenType.LPAREN: self._parse_call,
     }
 
   def _register_prefix_fns(self) -> PrefixParseFns:
@@ -268,6 +271,38 @@ class Parser:
       return []
 
     return params
+
+  def _parse_call(self, function: Expression) -> Call:
+    assert self._current_token is not None
+    call_expression = Call(self._current_token, function)
+    call_expression.arguments = self._parse_call_arguments()
+
+    return call_expression
+
+  def _parse_call_arguments(self) -> Optional[List[Expression]]:
+    arguments: List[Expression] = []
+
+    assert self._peek_token is not None
+    if self._peek_token.token_type == TokenType.RPAREN:
+      self._advance_tokens()
+
+      return arguments
+
+    self._advance_tokens()
+    if expression := self._parse_expression(Precedence.LOWEST):
+      arguments.append(expression)
+
+    while self._peek_token.token_type == TokenType.COMMA:
+      self._advance_tokens()
+      self._advance_tokens()
+
+      if expression := self._parse_expression(Precedence.LOWEST):
+        arguments.append(expression)
+
+    if not self._expected_token(TokenType.RPAREN):
+      return None
+
+    return arguments
 
   def _parse_statement(self) -> Optional[Statement]:
     assert self._current_token is not None

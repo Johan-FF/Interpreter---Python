@@ -102,6 +102,22 @@ class Infix(Expression):
   def __str__(self) -> str:
     return f'({str(self.left)} {self.operator} {str(self.right)})'
 
+class Call(Expression):
+  def __init__(self,
+      token: Token,
+      function: Expression,
+      arguments: Optional[List[Expression]] = None) -> None:
+    super().__init__(token)
+    self.function = function
+    self.arguments = arguments
+
+  def __str__(self) -> str:
+    assert self.arguments is not None
+    arg_list: List[str] = [str(argument) for argument in self.arguments]
+    args: str = ', '.join(arg_list)
+
+    return f'{str(self.function)}({args})'
+
 
 class BlockStatement(Statement):
   def __init__(self,
@@ -145,6 +161,7 @@ class Function(Expression):
     param_list = [str(parameter) for parameter in self.parameters]
     params = ', '.join(param_list)
     body = '{'+str(self.body)+'}'
+
     return f'{self.token_literal()}({params}) {body}'
 
 
