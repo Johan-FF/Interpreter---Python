@@ -86,6 +86,7 @@ class Parser:
       TokenType.NEGATION: self._parse_prefix_expression,
       TokenType.FALSE: self._parse_boolean,
       TokenType.TRUE: self._parse_boolean,
+      TokenType.LPAREN: self._parse_grouped_expression,
     }
 
 
@@ -179,6 +180,14 @@ class Parser:
       token=self._current_token,
       value= self._current_token.token_type == TokenType.TRUE
     )
+
+  def _parse_grouped_expression(self) -> Optional[Expression]:
+    self._advance_tokens()
+
+    expression = self._parse_expression(Precedence.LOWEST)
+    if not self._expected_token(TokenType.RPAREN):
+      return None
+    return expression
 
 
   def _parse_statement(self) -> Optional[Statement]:
