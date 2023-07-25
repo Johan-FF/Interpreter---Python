@@ -160,9 +160,8 @@ class Function(Expression):
   def __str__(self) -> str:
     param_list = [str(parameter) for parameter in self.parameters]
     params = ', '.join(param_list)
-    body = '{'+str(self.body)+'}'
 
-    return f'{self.token_literal()}({params}) {body}'
+    return f'{self.token_literal()}({params}) {str(self.body)}'
 
 
 class LetStatement(Statement):
