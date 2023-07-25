@@ -103,7 +103,6 @@ class Infix(Expression):
     return f'({str(self.left)} {self.operator} {str(self.right)})'
 
 
-
 class BlockStatement(Statement):
   def __init__(self,
       token: Token,
@@ -132,6 +131,21 @@ class If(Expression):
     if self.alternative:
       out += f'si_no {str(self.alternative)}'
     return out
+
+class Function(Expression):
+  def __init__(self,
+      token: Token,
+      parameters: List[Identifier] = [],
+      body: Optional[BlockStatement] = None) -> None:
+    super().__init__(token)
+    self.parameters = parameters
+    self.body = body
+
+  def __str__(self) -> str:
+    param_list = [str(parameter) for parameter in self.parameters]
+    params = ', '.join(param_list)
+    body = '{'+str(self.body)+'}'
+    return f'{self.token_literal()}({params}) {body}'
 
 
 class LetStatement(Statement):

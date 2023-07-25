@@ -11,6 +11,7 @@ from lpp.ast import (
   Boolean,
   Expression,
   ExpressionStatement,
+  Function,
   Identifier,
   If,
   Infix,
@@ -90,7 +91,7 @@ class Parser:
       TokenType.TRUE: self._parse_boolean,
       TokenType.LPAREN: self._parse_grouped_expression,
       TokenType.IF: self._parse_if,
-      TokenType.ELSE: self._parse_if,
+      TokenType.FUNCTION: self._parse_function,
     }
 
 
@@ -221,6 +222,52 @@ class Parser:
 
     return if_expression
 
+  def _parse_function(self) -> Optional[Function]:
+    assert self._current_token is not None
+    function_expression = Function(token=self._current_token)
+
+    if not self._expected_token(TokenType.LPAREN):
+      return None
+
+    function_expression.parameters = self._parse_function_parameters()
+
+    if not self._expected_token(TokenType.LBRACE):
+      return None
+
+    function_expression.body = self._parse_block_statement()
+
+    return function_expression
+
+  def _parse_function_parameters(self) -> List[Identifier]:
+    params: List[Identifier] = []
+
+    assert self._peek_token is not None
+    if self._peek_token.token_type == TokenType.RPAREN:
+      self._advance_tokens()
+      return params
+    self._advance_tokens()
+
+    assert self._current_token is not None
+    identifier = Identifier(
+      token=self._current_token,
+      value=self._current_token.literal
+    )
+    params.append(identifier)
+
+    while self._peek_token.token_type == TokenType.COMMA:
+      self._advance_tokens()
+      self._advance_tokens()
+
+      identifier = Identifier(
+        token=self._current_token,
+        value=self._current_token.literal
+      )
+      params.append(identifier)
+
+    if not self._expected_token(TokenType.RPAREN): 
+      return []
+
+    return params
 
   def _parse_statement(self) -> Optional[Statement]:
     assert self._current_token is not None
