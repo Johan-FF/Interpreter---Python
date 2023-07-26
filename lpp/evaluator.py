@@ -23,6 +23,7 @@ TRUE = Boolean(True)
 FALSE = Boolean(False)
 NULL = Null()
 
+_NOT_A_FUNCTION = 'No es una función: {}'
 _TYPE_MISMATCH = 'Discrepancia de tipos: {} {} {}'
 _UNKNOWN_PREFIX_OPERATION = 'Operador desconocido: {}{}'
 _UNKNOWN_INFIX_OPERATION = 'Operador desconocido: {} {} {}'
@@ -112,6 +113,17 @@ def evaluate(node: ast.ASTNode, env: Environment) -> Optional[Object]:
     assert node.body is not None
     return Function(node.parameters, node.body, env)
 
+  elif node_type == ast.Call:
+    node = cast(ast.Call, node)
+
+    function = evaluate(node.function, env)
+
+    assert node.arguments is not None
+    args = _evaluate_expression(node.arguments, env)
+
+    assert function is not None
+    return _apply_function(function, args)
+
   return None
 
 
@@ -125,6 +137,34 @@ def _is_truthy(obj: Object) -> bool:
 
 def _new_error(message: str, args: List[Any]) -> Error:
   return Error(message.format(*args))
+
+def _apply_function(fn: Object, args: List[Object]) -> Object:
+  if type(fn) != Function:
+    return _new_error(
+      _NOT_A_FUNCTION,
+      [fn.type().name]
+    )
+
+  fn = cast(Function, fn)
+  extended_environment = _extend_function_environment(fn, args)
+  evaluated = evaluate (fn.body, extended_environment)
+
+  assert evaluated is not None
+  return _unwrap_return_value(evaluated)
+
+def _extend_function_environment(fn: Function, args: List[Object]) -> Environment:
+  env = Environment(outer=fn.env)
+
+  for idx, param in enumerate(fn.parameters):
+    env[param.value] = args[idx-1]
+
+  return env
+
+def _unwrap_return_value(obj: Object) -> Object:
+  if type(obj) == Return:
+    obj = cast(Return, obj)
+    return obj.value
+  return obj
 
 
 def _evaluate_program(program: ast.Program, env: Environment) -> Optional[Object]:
@@ -162,6 +202,17 @@ def _evaluate_identifier(node: ast.Identifier, env: Environment) -> Object:
       _UNKNOWN_IDENTIFIER,
       [node.value]
     )
+
+def _evaluate_expression(expressions: List[ast.Expression], env: Environment) -> List[Object]:
+  result: List[Object] = []
+
+  for expression in expressions:
+    evaluated = evaluate(expression, env)
+
+    assert evaluated is not None
+    result.append(evaluated)
+
+  return result
 
 def _evaluate_if_expression(if_expression: ast.If, env: Environment) -> Optional[Object]:
   assert if_expression.condition is not None

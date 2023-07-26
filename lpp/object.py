@@ -19,11 +19,17 @@ from lpp.ast import (
 
 
 class Environment(Dict):
-  def __init__(self) -> None:
+  def __init__(self, outer = None) -> None:
     self._store: Dict[Any, Any] = dict()
+    self._outer = outer
 
   def __getitem__(self, key: Any) -> Any:
-    return self._store[key]
+    try:
+      return self._store[key]
+    except KeyError as e:
+      if self._outer is not None:
+        return self._outer[key]
+      raise
 
   def __setitem__(self, key: Any, value: Any) -> None:
     self._store[key] = value
