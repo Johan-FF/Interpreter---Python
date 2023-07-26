@@ -17,6 +17,7 @@ from lpp.object import (
   Object,
   ObjectType,
   Return,
+  String,
 )
 
 TRUE = Boolean(True)
@@ -28,6 +29,7 @@ _TYPE_MISMATCH = 'Discrepancia de tipos: {} {} {}'
 _UNKNOWN_PREFIX_OPERATION = 'Operador desconocido: {}{}'
 _UNKNOWN_INFIX_OPERATION = 'Operador desconocido: {} {} {}'
 _UNKNOWN_IDENTIFIER = 'Identificador no encontrado: {}'
+
 
 def evaluate(node: ast.ASTNode, env: Environment) -> Optional[Object]:
   node_type: Type = type(node)
@@ -54,6 +56,12 @@ def evaluate(node: ast.ASTNode, env: Environment) -> Optional[Object]:
 
     assert node.value is not None
     return _to_boolean_object(node.value)
+
+  elif node_type == ast.StringLiteral:
+    node = cast(ast.StringLiteral, node)
+
+    assert node.value is not None
+    return String(node.value)
 
   elif node_type == ast.Prefix:
     node = cast(ast.Prefix, node)
@@ -240,6 +248,9 @@ def _evaluate_infix_expression(operator: str, left: Object, right: Object) -> Ob
   if left.type() == ObjectType.INTEGER \
       and right.type() == ObjectType.INTEGER:
     return _evaluate_integer_infix_expression(operator, left, right)
+  elif left.type() == ObjectType.STRING \
+      and right.type() == ObjectType.STRING:
+    return _evaluate_string_infix_expression(operator, left, right)
   elif operator == '==':
     return _to_boolean_object(left is right)
   elif operator == '!=':
@@ -270,6 +281,21 @@ def _evaluate_integer_infix_expression(operator: str, left: Object, right: Objec
     return _to_boolean_object(left_value < right_value)
   elif operator == '>':
     return _to_boolean_object(left_value > right_value)
+  elif operator == '==':
+    return _to_boolean_object(left_value == right_value)
+  elif operator == '!=':
+    return _to_boolean_object(left_value != right_value)
+  return _new_error(
+    _UNKNOWN_INFIX_OPERATION,
+    [left.type().name, operator, right.type().name]
+  )
+
+def _evaluate_string_infix_expression(operator: str, left: Object, right: Object) -> Object:
+  left_value: str = cast(String, left).value
+  right_value: str = cast(String, right).value
+
+  if operator == '+':
+    return String(left_value + right_value)
   elif operator == '==':
     return _to_boolean_object(left_value == right_value)
   elif operator == '!=':

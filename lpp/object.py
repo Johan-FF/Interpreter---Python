@@ -45,6 +45,7 @@ class ObjectType(Enum):
   INTEGER = auto()
   NULL = auto()
   RETURN = auto()
+  STRING = auto()
 
 class Object(ABC):
   @abstractmethod
@@ -76,6 +77,16 @@ class Boolean(Object):
   def inspect(self) -> str:
     return 'verdadero' if self.value else 'falso'
 
+class String(Object):
+  def __init__(self, value: str) -> None:
+    self.value = value
+
+  def type(self) -> ObjectType:
+    return ObjectType.STRING
+
+  def inspect(self) -> str:
+    return self.value
+
 class Return(Object):
   def __init__(self, value: Object) -> None:
     self.value = value
@@ -102,6 +113,7 @@ class Function(Object):
     params: str = ', '.join([str(param) for param in self.parameters])
 
     return 'procedimiento({}) {{\n{}\n}}'.format(params, str(self.body))
+
 
 class Error(Object):
   def __init__(self, message: str) -> None:
