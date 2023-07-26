@@ -1,3 +1,7 @@
+from typing import (
+  Any,
+  Dict,
+)
 from abc import (
   ABC,
   abstractmethod,
@@ -71,3 +75,17 @@ class Null(Object):
 
   def inspect(self) -> str:
     return 'nulo'
+
+
+class Environment(Dict):
+  def __init__(self) -> None:
+    self._store: Dict[Any, Any] = dict()
+
+  def __getitem__(self, key: Any) -> Any:
+    return self._store[key]
+
+  def __setitem__(self, key: Any, value: Any) -> None:
+    self._store[key] = value
+
+  def __delitem__(self, key: Any) -> None:
+    del self._store[key]
