@@ -128,7 +128,7 @@ class BlockStatement(Statement):
 
   def __str__(self) -> str:
     out: List[str] = [str(statement) for statement in self.statements]
-    return '{'+''.join(out)+'}'
+    return ''.join(out)
 
 
 class If(Expression):

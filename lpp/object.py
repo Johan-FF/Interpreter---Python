@@ -1,6 +1,7 @@
 from typing import (
   Any,
   Dict,
+  List,
 )
 from abc import (
   ABC,
@@ -11,9 +12,30 @@ from enum import (
   Enum,
 )
 
+from lpp.ast import (
+  BlockStatement,
+  Identifier,
+)
+
+
+class Environment(Dict):
+  def __init__(self) -> None:
+    self._store: Dict[Any, Any] = dict()
+
+  def __getitem__(self, key: Any) -> Any:
+    return self._store[key]
+
+  def __setitem__(self, key: Any, value: Any) -> None:
+    self._store[key] = value
+
+  def __delitem__(self, key: Any) -> None:
+    del self._store[key]
+
+
 class ObjectType(Enum):
   BOOLEAN = auto()
   ERROR = auto()
+  FUNCTION = auto()
   INTEGER = auto()
   NULL = auto()
   RETURN = auto()
@@ -58,6 +80,22 @@ class Return(Object):
   def inspect(self) -> str:
     return self.value.inspect()
 
+class Function(Object):
+  def __init__(self,
+      parameters: List[Identifier],
+      body: BlockStatement,
+      env: Environment) -> None:
+    self.parameters = parameters
+    self.body = body
+    self.env = env
+
+  def type(self) -> ObjectType:
+    return ObjectType.FUNCTION
+
+  def inspect(self) -> str:
+    params: str = ', '.join([str(param) for param in self.parameters])
+
+    return 'procedimiento({}) {{\n{}\n}}'.format(params, str(self.body))
 
 class Error(Object):
   def __init__(self, message: str) -> None:
@@ -75,17 +113,3 @@ class Null(Object):
 
   def inspect(self) -> str:
     return 'nulo'
-
-
-class Environment(Dict):
-  def __init__(self) -> None:
-    self._store: Dict[Any, Any] = dict()
-
-  def __getitem__(self, key: Any) -> Any:
-    return self._store[key]
-
-  def __setitem__(self, key: Any, value: Any) -> None:
-    self._store[key] = value
-
-  def __delitem__(self, key: Any) -> None:
-    del self._store[key]

@@ -14,6 +14,7 @@ from lpp.evaluator import (
 from lpp.lexer import Lexer
 from lpp.object import (
   Boolean,
+  Function,
   Integer,
   Environment,
   Error,
@@ -180,6 +181,17 @@ class EvaluatorTest(TestCase):
     for source, expected in tests:
       evaluated = self._evaluate_tests(source)
       self._test_integer_object(evaluated, expected)
+
+  def test_function_evaluation(self) -> None:
+    source: str = 'procedimiento(x) {x+2;};'
+    evaluated = self._evaluate_tests(source)
+
+    self.assertIsInstance(evaluated, Function)
+
+    evaluated = cast(Function, evaluated)
+    self.assertEqual(len(evaluated.parameters), 1)
+    self.assertEqual(str(evaluated.parameters[0]), 'x')
+    self.assertEqual(str(evaluated.body), '(x + 2)')
 
 
   def _test_null_object(self, evaluated: Object) -> None:
