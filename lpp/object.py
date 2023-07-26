@@ -9,6 +9,7 @@ from enum import (
 
 class ObjectType(Enum):
   BOOLEAN = auto()
+  ERROR = auto()
   INTEGER = auto()
   NULL = auto()
   RETURN = auto()
@@ -52,6 +53,17 @@ class Return(Object):
 
   def inspect(self) -> str:
     return self.value.inspect()
+
+
+class Error(Object):
+  def __init__(self, message: str) -> None:
+    self.message = message
+
+  def type(self) -> ObjectType:
+    return ObjectType.ERROR
+
+  def inspect(self) -> str:
+    return f'Error: {self.message}'
 
 class Null(Object):
   def type(self) -> ObjectType:
