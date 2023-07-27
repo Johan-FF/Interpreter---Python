@@ -22,7 +22,7 @@ cd Interpreter---Python
 2. Create a virtual environment (optional but recommended):
 
 ~~~
-python3 -m venv venv
+python3.9 -m venv venv # Or python39 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ~~~
 
@@ -42,11 +42,11 @@ python39 main.py  # Or python3.9 main.py
 
 ### Commands to REPL
 
-1. `salir()`: This it allow you exit of the REPL.
+- `salir()`: This it allow you exit of the REPL.
 
 ### Built-in of LPP
 
-1. `longitud()`: Returns the length of a STRING in an INTEGER.
+- `longitud()`: Returns the length of a STRING in an INTEGER.
 
 2. Running Tests
 
@@ -56,18 +56,19 @@ We use nose2 for running tests and mypy for type checking. To ensure everything 
 mypy . && nose2
 ~~~
 
-## Tutorial SigmaF
+## Getting Started in LPP
 
 ### Let Statements
 
 For declaring a value, you must use `variable` and give it a value. For example:
 
 ~~~
-variable numero = 1                        -- Interger
-variable cadena_de_caracteres = "string"   -- String
+variable numero = 1                        # Interger
+variable cadena_de_caracteres = "string"   # String
+variable booleano = verdadero              # Boolean (Can be 'verdadero' or 'falso')
 ~~~
 
-SigmaF allows data type as Integer, Boolean and String.
+LPP allows data type as Integer, Boolean and String.
 
 ### Operators
 
@@ -150,6 +151,14 @@ correcto
 Error: Identificador no encontrado: error
 >> longitud(resultado)
 8
+>> si ( !verdadero ) { "condicion verdadera"; } si_no { "condicion falsa"; };
+condicion falsa
+>> variable true  = verdadero;
+>> si ( true ) { "Es cierto..."; }
+Es cierto...
+>> si ( !verdadero ) { "condicion verdadera"; } si_no { "condicion falsa"; };
+condicion falsa
+>> salir()
 ~~~
 
 ## Contributing
